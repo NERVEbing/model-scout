@@ -84,6 +84,19 @@ YAML 输出示例：
 - `--output-file`：输出到文件（默认 stdout）。
 - `--only-ok`：仅输出可用模型。
 - `--exclude`：逗号分隔的排除子串。
+- `--filter`：按 `key=value` 或 `key!=value` 过滤输出（可重复，值可用逗号分隔）。
+
+### 过滤规则
+
+支持精确匹配的字段：`available`、`status`、`model`、`platform`。
+
+示例：
+
+```
+model-scout scan --platform dashscope --filter available=true
+model-scout scan --platform dashscope --filter status=ok,active
+model-scout scan --platform dashscope --filter platform=dashscope --filter status=ok
+```
 
 ### 默认过滤
 

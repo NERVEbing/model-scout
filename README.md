@@ -84,6 +84,19 @@ Example YAML output:
 - `--output-file`: write output to a file (defaults to stdout).
 - `--only-ok`: output only available models.
 - `--exclude`: comma-separated substrings to exclude.
+- `--filter`: filter output with `key=value` or `key!=value` (repeatable, values can be comma-separated).
+
+### Filters
+
+Filters support exact matching on these keys: `available`, `status`, `model`, `platform`.
+
+Examples:
+
+```
+model-scout scan --platform dashscope --filter available=true
+model-scout scan --platform dashscope --filter status=ok,active
+model-scout scan --platform dashscope --filter platform=dashscope --filter status=ok
+```
 
 ### Default filters
 
