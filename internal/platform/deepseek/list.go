@@ -4,7 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
+	"strings"
 
 	"github.com/NERVEbing/model-scout/internal/platform"
 )
@@ -29,6 +31,11 @@ func (p *Platform) ListModels(ctx context.Context) ([]platform.Model, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		reason := strings.TrimSpace(string(body))
+		if reason != "" {
+			return nil, fmt.Errorf("deepseek list models failed: %s: %s", resp.Status, reason)
+		}
 		return nil, fmt.Errorf("deepseek list models failed: %s", resp.Status)
 	}
 

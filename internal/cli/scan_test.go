@@ -64,7 +64,6 @@ func TestRunOutputsFilteredResults(t *testing.T) {
 		"--out", "json",
 		"--exclude", "skip",
 		"--filter", "status=ok",
-		"--only-ok",
 	}
 	if err := Run(args); err != nil {
 		t.Fatalf("expected no error, got %v", err)

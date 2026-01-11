@@ -87,7 +87,6 @@ YAML 输出示例：
 - `--timeout`：HTTP 超时时间，如 `10s`（默认：`15s`）。
 - `--out`：输出格式：`json` 或 `yaml`（默认：`json`）。
 - `--output-file`：输出到文件（默认 stdout）。
-- `--only-ok`：仅输出可用模型。
 - `--exclude`：逗号分隔的排除子串。
 - `--filter`：按 `key=value` 或 `key!=value` 过滤输出（可重复，值可用逗号分隔）。
 

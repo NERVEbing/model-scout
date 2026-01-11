@@ -87,7 +87,6 @@ Example YAML output:
 - `--timeout`: HTTP timeout, e.g. `10s` (default: `15s`).
 - `--out`: output format: `json` or `yaml` (default: `json`).
 - `--output-file`: write output to a file (defaults to stdout).
-- `--only-ok`: output only available models.
 - `--exclude`: comma-separated substrings to exclude.
 - `--filter`: filter output with `key=value` or `key!=value` (repeatable, values can be comma-separated).
 

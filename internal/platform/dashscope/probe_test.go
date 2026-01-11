@@ -1,4 +1,4 @@
-package deepseek
+package dashscope
 
 import (
 	"context"
@@ -28,21 +28,20 @@ func TestProbeOK(t *testing.T) {
 		},
 	}
 
-	result := platformImpl.Probe(context.Background(), platform.Model{ID: "deepseek-chat"})
+	result := platformImpl.Probe(context.Background(), platform.Model{ID: "qwen-plus"})
 	if result.Status != "ok" || !result.Available {
 		t.Fatalf("expected ok/available, got status=%s available=%t", result.Status, result.Available)
 	}
 }
 
-func TestProbeDenied(t *testing.T) {
+func TestProbeFail(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/chat/completions" {
 			http.NotFound(w, r)
 			return
 		}
-		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusForbidden)
-		_, _ = w.Write([]byte(`no access`))
+		_, _ = w.Write([]byte("no access"))
 	}))
 	t.Cleanup(server.Close)
 
@@ -54,7 +53,7 @@ func TestProbeDenied(t *testing.T) {
 		},
 	}
 
-	result := platformImpl.Probe(context.Background(), platform.Model{ID: "deepseek-chat"})
+	result := platformImpl.Probe(context.Background(), platform.Model{ID: "qwen-plus"})
 	if result.Status != "fail" || result.Available {
 		t.Fatalf("expected fail/unavailable, got status=%s available=%t", result.Status, result.Available)
 	}

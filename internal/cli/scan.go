@@ -29,10 +29,9 @@ func Run(args []string) error {
 	timeout := flags.Duration("timeout", 15*time.Second, "http timeout")
 	outFormat := flags.String("out", "json", "output format: json or yaml")
 	outputFile := flags.String("output-file", "", "output file path")
-	onlyOK := flags.Bool("only-ok", false, "output only available models")
 	exclude := flags.String("exclude", "", "comma-separated substrings to exclude")
 	var filters filterExpressions
-	flags.Var(&filters, "filter", "filter output: key=value or key!=value, value can be comma-separated")
+	flags.Var(&filters, "filter", "filter output: key=value or key!=value (keys: available,status,model,platform)")
 
 	if err := flags.Parse(args); err != nil {
 		return err
@@ -65,16 +64,6 @@ func Run(args []string) error {
 	results, err := engine.Scan(ctx, excludes)
 	if err != nil {
 		return err
-	}
-
-	if *onlyOK {
-		filtered := results[:0]
-		for _, result := range results {
-			if result.Status == "ok" {
-				filtered = append(filtered, result)
-			}
-		}
-		results = filtered
 	}
 
 	parsedFilters, err := parseFilters(filters)

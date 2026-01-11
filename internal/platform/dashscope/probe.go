@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -18,13 +19,6 @@ type probeRequest struct {
 		Content string `json:"content"`
 	} `json:"messages"`
 	MaxTokens int `json:"max_tokens"`
-}
-
-type errorEnvelope struct {
-	Error struct {
-		Type    string `json:"type"`
-		Message string `json:"message"`
-	} `json:"error"`
 }
 
 func (p *Platform) Probe(ctx context.Context, model platform.Model) platform.ProbeResult {
@@ -93,34 +87,17 @@ func (p *Platform) Probe(ctx context.Context, model platform.Model) platform.Pro
 		}
 	}
 
-	var envelope errorEnvelope
-	if err := json.Unmarshal(body, &envelope); err != nil {
-		return platform.ProbeResult{
-			Platform:  p.Name(),
-			Model:     model.ID,
-			Status:    "fail",
-			Available: false,
-			Reason:    resp.Status,
-		}
-	}
-
-	errorType := envelope.Error.Type
-	reason := envelope.Error.Message
-	if reason == "" {
+	reason := strings.TrimSpace(string(body))
+	if reason != "" {
+		reason = fmt.Sprintf("%s: %s", resp.Status, reason)
+	} else {
 		reason = resp.Status
-	}
-
-	status := "fail"
-	if strings.Contains(errorType, "AccessDenied") || strings.Contains(errorType, "Model.AccessDenied") {
-		status = "denied"
-	} else if strings.Contains(errorType, "NotSupported") {
-		status = "unsupported"
 	}
 
 	return platform.ProbeResult{
 		Platform:  p.Name(),
 		Model:     model.ID,
-		Status:    status,
+		Status:    "fail",
 		Available: false,
 		Reason:    reason,
 	}
