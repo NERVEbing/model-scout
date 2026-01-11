@@ -12,7 +12,7 @@ model-scout 用于扫描 LLM 平台，并探测你的 API Key 可以使用哪些
 ## 环境要求
 
 - Go 1.25.5（与 `go.mod` 保持一致）
-- 平台 API Key（当前支持 DashScope，后续会接入更多平台）
+- 平台 API Key（当前支持 DashScope 与 DeepSeek，后续会接入更多平台）
 
 ## 构建
 
@@ -32,6 +32,12 @@ model-scout scan --platform dashscope --api-key $DASHSCOPE_API_KEY
 
 ```
 model-scout scan --platform dashscope
+```
+
+DeepSeek 默认环境变量为 `DEEPSEEK_API_KEY`：
+
+```
+model-scout scan --platform deepseek
 ```
 
 ### 快速开始
@@ -76,8 +82,7 @@ YAML 输出示例：
 ### 参数说明
 
 - `--platform`（必填）：扫描的平台。支持：`dashscope`。
-- `--api-key`：平台 API Key。为空时会读取 `--key-env` 指定的环境变量。
-- `--key-env`：API Key 的环境变量名（默认：`DASHSCOPE_API_KEY`）。
+- `--api-key`：平台 API Key。为空时会读取对应平台的默认环境变量。
 - `--workers`：并发探测数（默认：4）。
 - `--timeout`：HTTP 超时时间，如 `10s`（默认：`15s`）。
 - `--out`：输出格式：`json` 或 `yaml`（默认：`json`）。
@@ -142,6 +147,7 @@ go test ./...
 ## 平台支持
 
 - DashScope（`dashscope`）
+- DeepSeek（`deepseek`）
 - 其他平台将陆续接入
 
 ## 安全提示

@@ -57,9 +57,9 @@ func TestRunOutputsFilteredResults(t *testing.T) {
 	})
 
 	outputPath := filepath.Join(t.TempDir(), "out.json")
+	t.Setenv("DEEPSEEK_API_KEY", "token")
 	args := []string{
-		"--platform", "fake",
-		"--api-key", "token",
+		"--platform", "deepseek",
 		"--output-file", outputPath,
 		"--out", "json",
 		"--exclude", "skip",

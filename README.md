@@ -12,7 +12,7 @@ Model-scout scans LLM platforms and probes which models are available for your A
 ## Requirements
 
 - Go 1.25.5 (matches `go.mod`)
-- A platform API key (DashScope today; more platforms coming)
+- A platform API key (DashScope and DeepSeek today; more platforms coming)
 
 ## Build
 
@@ -32,6 +32,12 @@ You can also rely on the default environment variable `DASHSCOPE_API_KEY`:
 
 ```
 model-scout scan --platform dashscope
+```
+
+For DeepSeek, the default environment variable is `DEEPSEEK_API_KEY`:
+
+```
+model-scout scan --platform deepseek
 ```
 
 ### Quickstart
@@ -76,8 +82,7 @@ Example YAML output:
 ### Flags
 
 - `--platform` (required): platform to scan. Supported: `dashscope`.
-- `--api-key`: platform API key. If empty, `--key-env` is used.
-- `--key-env`: environment variable name for the API key (default: `DASHSCOPE_API_KEY`).
+- `--api-key`: platform API key. If empty, the platform default environment variable is used.
 - `--workers`: number of concurrent probes (default: 4).
 - `--timeout`: HTTP timeout, e.g. `10s` (default: `15s`).
 - `--out`: output format: `json` or `yaml` (default: `json`).
@@ -142,6 +147,7 @@ go test ./...
 ## Platforms
 
 - DashScope (`dashscope`)
+- DeepSeek (`deepseek`)
 - More platforms will be added
 
 ## Security

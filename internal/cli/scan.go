@@ -12,6 +12,7 @@ import (
 	"github.com/NERVEbing/model-scout/internal/output"
 	"github.com/NERVEbing/model-scout/internal/platform"
 	"github.com/NERVEbing/model-scout/internal/platform/dashscope"
+	"github.com/NERVEbing/model-scout/internal/platform/deepseek"
 	"github.com/NERVEbing/model-scout/internal/scout"
 )
 
@@ -24,7 +25,6 @@ func Run(args []string) error {
 	flags.SetOutput(os.Stderr)
 	platformName := flags.String("platform", "", "platform to scan")
 	apiKey := flags.String("api-key", "", "api key")
-	keyEnv := flags.String("key-env", defaultDashscopeKeyEnv, "environment variable for api key")
 	workers := flags.Int("workers", 4, "number of workers")
 	timeout := flags.Duration("timeout", 15*time.Second, "http timeout")
 	outFormat := flags.String("out", "json", "output format: json or yaml")
@@ -44,10 +44,14 @@ func Run(args []string) error {
 
 	key := strings.TrimSpace(*apiKey)
 	if key == "" {
-		key = strings.TrimSpace(os.Getenv(*keyEnv))
-	}
-	if key == "" {
-		return fmt.Errorf("api key missing; provide --api-key or set %s", *keyEnv)
+		keyEnvName, err := defaultKeyEnv(*platformName)
+		if err != nil {
+			return err
+		}
+		key = strings.TrimSpace(os.Getenv(keyEnvName))
+		if key == "" {
+			return fmt.Errorf("api key missing; provide --api-key or set %s", keyEnvName)
+		}
 	}
 
 	platformImpl, err := platformFactory(*platformName, key, *timeout)
@@ -100,10 +104,23 @@ func splitExclude(raw string) []string {
 	return filtered
 }
 
+func defaultKeyEnv(platformName string) (string, error) {
+	switch strings.ToLower(platformName) {
+	case "dashscope":
+		return defaultDashscopeKeyEnv, nil
+	case "deepseek":
+		return "DEEPSEEK_API_KEY", nil
+	default:
+		return "", fmt.Errorf("unsupported platform: %s", platformName)
+	}
+}
+
 func platformFromName(name, apiKey string, timeout time.Duration) (platform.Platform, error) {
 	switch strings.ToLower(name) {
 	case "dashscope":
 		return dashscope.NewPlatform(apiKey, timeout), nil
+	case "deepseek":
+		return deepseek.NewPlatform(apiKey, timeout), nil
 	default:
 		return nil, fmt.Errorf("unsupported platform: %s", name)
 	}

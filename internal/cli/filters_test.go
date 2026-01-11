@@ -131,3 +131,32 @@ func TestApplyFilters(t *testing.T) {
 		}
 	})
 }
+
+func TestDefaultKeyEnv(t *testing.T) {
+	t.Run("dashscope default", func(t *testing.T) {
+		env, err := defaultKeyEnv("dashscope")
+		if err != nil {
+			t.Fatalf("expected no error, got %v", err)
+		}
+		if env != defaultDashscopeKeyEnv {
+			t.Fatalf("expected %s, got %q", defaultDashscopeKeyEnv, env)
+		}
+	})
+
+	t.Run("deepseek default", func(t *testing.T) {
+		env, err := defaultKeyEnv("deepseek")
+		if err != nil {
+			t.Fatalf("expected no error, got %v", err)
+		}
+		if env != "DEEPSEEK_API_KEY" {
+			t.Fatalf("expected DEEPSEEK_API_KEY, got %q", env)
+		}
+	})
+
+	t.Run("unsupported platform", func(t *testing.T) {
+		_, err := defaultKeyEnv("unknown")
+		if err == nil {
+			t.Fatalf("expected error for unsupported platform")
+		}
+	})
+}
