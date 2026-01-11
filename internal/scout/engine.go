@@ -36,16 +36,28 @@ func (e Engine) Scan(ctx context.Context, excludes []string) ([]platform.ProbeRe
 
 	jobs := make(chan platform.Model)
 	results := make(chan platform.ProbeResult)
+	ctxDone := ctx.Done()
 
 	var wg sync.WaitGroup
 	for i := 0; i < workers; i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			for model := range jobs {
-				results <- e.Platform.Probe(ctx, model)
+		wg.Go(func() {
+			for {
+				select {
+				case <-ctxDone:
+					return
+				case model, ok := <-jobs:
+					if !ok {
+						return
+					}
+					result := e.Platform.Probe(ctx, model)
+					select {
+					case <-ctxDone:
+						return
+					case results <- result:
+					}
+				}
 			}
-		}()
+		})
 	}
 
 	go func() {
@@ -54,16 +66,30 @@ func (e Engine) Scan(ctx context.Context, excludes []string) ([]platform.ProbeRe
 	}()
 
 	go func() {
+		defer close(jobs)
 		for _, model := range filtered {
-			jobs <- model
+			select {
+			case <-ctxDone:
+				return
+			case jobs <- model:
+			}
 		}
-		close(jobs)
 	}()
 
 	collected := make([]platform.ProbeResult, 0, len(filtered))
-	for result := range results {
-		collected = append(collected, result)
+	canceled := false
+	for {
+		select {
+		case result, ok := <-results:
+			if !ok {
+				if canceled && ctx.Err() != nil {
+					return collected, ctx.Err()
+				}
+				return collected, nil
+			}
+			collected = append(collected, result)
+		case <-ctxDone:
+			canceled = true
+		}
 	}
-
-	return collected, nil
 }

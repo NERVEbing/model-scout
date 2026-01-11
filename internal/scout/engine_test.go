@@ -2,8 +2,10 @@ package scout
 
 import (
 	"context"
+	"errors"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/NERVEbing/model-scout/internal/platform"
 )
@@ -59,5 +61,77 @@ func TestEngineScanFilters(t *testing.T) {
 	}
 	if results[0].Model != "text-1" {
 		t.Fatalf("expected text-1, got %s", results[0].Model)
+	}
+}
+
+type cancelPlatform struct {
+	started  chan struct{}
+	toReturn []platform.Model
+}
+
+func (c *cancelPlatform) Name() string {
+	return "cancel"
+}
+
+func (c *cancelPlatform) ListModels(ctx context.Context) ([]platform.Model, error) {
+	return c.toReturn, nil
+}
+
+func (c *cancelPlatform) Probe(ctx context.Context, model platform.Model) platform.ProbeResult {
+	select {
+	case c.started <- struct{}{}:
+	default:
+	}
+	<-ctx.Done()
+	return platform.ProbeResult{
+		Platform:  c.Name(),
+		Model:     model.ID,
+		Status:    "error",
+		Available: false,
+		Reason:    ctx.Err().Error(),
+	}
+}
+
+func TestEngineScanRespectsContextCancel(t *testing.T) {
+	cancelSignal := make(chan struct{}, 1)
+	fake := &cancelPlatform{
+		started: cancelSignal,
+		toReturn: []platform.Model{
+			{ID: "model-a"},
+			{ID: "model-b"},
+		},
+	}
+	engine := Engine{Platform: fake, Workers: 2}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	done := make(chan struct{})
+	var results []platform.ProbeResult
+	var err error
+	go func() {
+		results, err = engine.Scan(ctx, nil)
+		close(done)
+	}()
+
+	select {
+	case <-cancelSignal:
+	case <-time.After(1 * time.Second):
+		t.Fatalf("expected probe to start before cancel")
+	}
+
+	cancel()
+
+	select {
+	case <-done:
+	case <-time.After(2 * time.Second):
+		t.Fatalf("expected scan to return after cancel")
+	}
+
+	if !errors.Is(err, context.Canceled) {
+		t.Fatalf("expected context canceled error, got %v", err)
+	}
+	if len(results) != 0 {
+		t.Fatalf("expected no results, got %d", len(results))
 	}
 }
