@@ -2,6 +2,8 @@
 
 model-scout 用于扫描 LLM 平台，并探测你的 API Key 可以使用哪些模型。
 
+[English](README.md) | [中文](README.zh.md)
+
 ## 功能特性
 
 - 获取平台模型列表，并用轻量聊天请求探测可用性。

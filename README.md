@@ -2,6 +2,8 @@
 
 model-scout scans LLM platforms and probes which models are available for your API key.
 
+[English](README.md) | [中文](README.zh.md)
+
 ## Features
 
 - List models from a platform and probe availability with a lightweight chat request.
