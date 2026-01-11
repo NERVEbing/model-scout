@@ -1,6 +1,6 @@
 # model-scout
 
-Model-scout scans LLM platforms and probes which models are available for your API key.
+model-scout scans LLM platforms and probes which models are available for your API key.
 
 ## Features
 
