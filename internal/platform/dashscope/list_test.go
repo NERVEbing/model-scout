@@ -2,8 +2,10 @@ package dashscope
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 )
 
@@ -39,5 +41,45 @@ func TestListModels(t *testing.T) {
 	}
 	if models[0].ID != "qwen-plus" || models[1].ID != "qwen-turbo" {
 		t.Fatalf("unexpected models: %#v", models)
+	}
+}
+
+type errorBody struct{}
+
+func (errorBody) Read([]byte) (int, error) {
+	return 0, errors.New("read failed")
+}
+
+func (errorBody) Close() error {
+	return nil
+}
+
+type errorTransport struct{}
+
+func (errorTransport) RoundTrip(*http.Request) (*http.Response, error) {
+	return &http.Response{
+		StatusCode: http.StatusUnauthorized,
+		Status:     "401 Unauthorized",
+		Body:       errorBody{},
+		Header:     make(http.Header),
+	}, nil
+}
+
+func TestListModelsReadError(t *testing.T) {
+	client := &Client{
+		BaseURL: "https://example.com",
+		APIKey:  "token",
+		HTTPClient: &http.Client{
+			Transport: errorTransport{},
+		},
+	}
+	platform := &Platform{client: client}
+
+	_, err := platform.ListModels(context.Background())
+	if err == nil {
+		t.Fatalf("expected error, got nil")
+	}
+	if !strings.Contains(err.Error(), "read body") {
+		t.Fatalf("expected read body error, got %v", err)
 	}
 }

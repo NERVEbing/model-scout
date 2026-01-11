@@ -31,7 +31,10 @@ func (p *Platform) ListModels(ctx context.Context) ([]platform.Model, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, fmt.Errorf("dashscope list models failed: %s (read body: %v)", resp.Status, err)
+		}
 		reason := strings.TrimSpace(string(body))
 		if reason != "" {
 			return nil, fmt.Errorf("dashscope list models failed: %s: %s", resp.Status, reason)
